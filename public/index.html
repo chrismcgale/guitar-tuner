@@ -6,17 +6,34 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <h2 id="note" class="note">a</h2>
-    <div class="metronome"></div>
-    <div id="hand" class="hand"></div>
-    <div class="note-arrow">&#10515;</div>
+    <div>
+        <p>SOUND BACK</p>
+        <button id="soundBack" onclick="playNote()">&#9673;</button>
+    </div>
+    <div class="metronome-container">
+        <h2 id="note" class="note">A</h2>
+        <div class="tempo-container">
+            TEMPO
+            <p id="tempo" class="tempo">60</p>
+        </div>
+        <div class="metronome">
+            <div class="note-arrow">&#10515;</div>
+            <div id="hand" class="hand"></div>
+        </div>
+    </div>
     <button class="tuner-button" onclick="startPitchDetection()">
         TUNER ON
     </button>
 
-    <button class="metronome-button" onclick="startPitchDetection()">
+    <button class="metronome-button" onclick="tap()">
         METRONOME ON
     </button>
+
+    <div class="tempo-buttons">
+        <p>TEMPO</p>
+        <button id="tempoUp" onclick="increaseTempo()">&#9650;</button>
+        <button id="tempoDown" onclick="decreaseTempo()">&#9660;</button>
+    </div>
 
 <script type="application/javascript" src="tuner.js"></script>
 </body>
