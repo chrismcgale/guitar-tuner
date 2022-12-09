@@ -13,7 +13,7 @@ p {
     position: absolute;
     top: 30%;
     width: 60%;
-    height: 60%;
+    height: 40%;
     background-color: #5C6659;
     z-index: 9999;
     display: flex;
@@ -24,17 +24,54 @@ p {
     color: black;
 }
 
+.beat-buttons {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    right: 5%;
+}
+
 .tempo-buttons {
     position: absolute;
     display: flex;
     flex-direction: column;
     top: 20%;
-    right: 10%;
+    right: 12%;
+}
+
+.sound-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 40%;
+    left: 10%;
+}
+
+.calib-buttons {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    left: 10%;
+}
+
+.light-button {
+    position: absolute;
+    top: 60%;
+    left: 10%;
 }
 
 .tempo-container {
     position: absolute;
     right: 0;
+}
+
+.beat-container {
+    position: absolute;
+    right: 0;
+    top: 25%;
+    display: flex;
 }
 
 .tempo {
@@ -63,6 +100,7 @@ p {
     top: 20%;
     margin: 0;
     color: black;
+    font-size: 2.8em;
 }
 
 .note-arrow {
@@ -104,4 +142,19 @@ p {
     transform-origin: 50% 100%;
     transform: rotate(-45deg);
     transition-timing-function: linear;
+}
+
+.tap-button-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    top: 60%;
+    right: 10%;
+}
+
+.tap-button {
+    width: 10%;
+    height: 10%;
+    padding: 20%;
 }

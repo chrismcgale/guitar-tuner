@@ -143,3 +143,7 @@ const decreaseTempo = () => {
 const playNote = () => {
 
 }
+
+const toggleLight = () => {
+
+}
