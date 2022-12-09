@@ -1,0 +1,58 @@
+body {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    background-color: black;
+}
+
+.metronome {
+    background-color: #5C6659;
+}
+
+.tuner-button {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    border-radius: 60px;
+}
+
+.metronome-button {
+    position: absolute;
+    top: 20%;
+    right: 20%;
+    border-radius: 60px;
+}
+
+.note {
+    position: absolute;
+    top: 20%;
+    margin: 0;
+    color: white;
+}
+
+.note-arrow {
+    position: absolute;
+    top: 27%;
+    color: white;
+}
+
+
+
+.metronome {
+    position: absolute;
+    top: 30%;
+    width: 60%;
+    padding-bottom: 25%;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;;
+    border: 10px dotted black;
+    border-bottom: 0;
+}
+
+.hand {
+    position: absolute;
+    left: 50%;
+    height: 30%;
+    top: 30%;
+    width: 4px;
+    background-color: black;
+}
