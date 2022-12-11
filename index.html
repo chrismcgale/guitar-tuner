@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Pitch Detection</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script type="application/javascript" src="bundle.js"></script>
 </head>
 <body>
     <div class="calib-buttons">
@@ -19,7 +20,7 @@
 
     <button id="lightButton" class="light-button" onclick="toggleLight()">&#128161;</button>
 
-    <div class="metronome-container">
+    <canvas id="metronome" class="metronome-container">
         <h2 id="note" class="note">A</h2>
         <div class="tempo-container">
             TEMPO
@@ -32,8 +33,8 @@
             <div class="note-arrow">&#9660;</div>
             <div id="hand" class="hand"></div>
         </div>
-    </div>
-    <button class="tuner-button" onclick="startPitchDetection()">
+    </canvas>
+    <button class="tuner-button" onclick="tune()">
         TUNER ON
     </button>
 
@@ -58,6 +59,7 @@
         <button class="tap-button" onclick="tapTempo()"></button>
     </div>
 
-<script type="application/javascript" src="tuner.js"></script>
+<script type="application/javascript" src="bundle.js"></script>
+<script type="application/javascript" src="canvas.js"></script>
 </body>
 </html>

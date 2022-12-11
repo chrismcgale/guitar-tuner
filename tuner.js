@@ -1,3 +1,7 @@
+const Pitchfinder = require('pitchfinder');
+const WavDecoder = require('wav-decoder');
+
+const detectPitch = new Pitchfinder.YIN();
 
 // A0
 const lowestFreq = 27.5;
@@ -10,18 +14,19 @@ const maxTempo = 252;
 
 const noteNames = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 
+
+
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let analyserNode = audioCtx.createAnalyser()
-let localMaxima = new Array(10);
 let metronomeOn = false;
 const noteDisplay = document.getElementById('note');
 const tempoDisplay = document.getElementById('tempo');
 const hand = document.getElementById('hand')
 
-const startPitchDetection = async () => {
+window.tune = async () => {
     try {
         metronomeOn = false;
-        const stream = await navigator.mediaDevices.getUserMedia ({audio: true})
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true})
 
         let microphoneStream = audioCtx.createMediaStreamSource(stream);
         microphoneStream.connect(analyserNode);
@@ -35,7 +40,8 @@ const startPitchDetection = async () => {
             const sigSounds = audioData.filter((d) => Math.abs(d) > 0.015);
             if (sigSounds.length < 1) return;
 
-            let pitch = getAutocorrolatedPitch(audioData);
+            let pitch = detectPitch(WavDecoder.decode(audioData).channelData[0]);
+            console.log(pitch)
 
             if (Number.isNaN(pitch) || pitch < lowestFreq || pitch > highestFreq ) return;
 
@@ -67,38 +73,6 @@ const startPitchDetection = async () => {
     };
 }
 
-const getAutocorrolatedPitch = (audioData) => {
-    // First: autocorrolate the signal
-
-    let maximaCount = 0;
-
-    for (let l = 0; l < analyserNode.fftSize; l++) {
-        corrolatedSignal[l] = 0;
-        for (let i = 0; i < analyserNode.fftSize - l; i++) {
-            corrolatedSignal[l] += audioData[i] * audioData[i + l];
-        }
-        if (l > 1) {
-            if ((corrolatedSignal[l - 2] - corrolatedSignal[l - 1]) < 0
-                && (corrolatedSignal[l - 1] - corrolatedSignal[l]) > 0) {
-                localMaxima[maximaCount] = (l - 1);
-                maximaCount++;
-                if ((maximaCount >= localMaxima.length))
-                    break;
-            }
-        }
-    }
-
-    // Second: find the average distance in samples between maxima
-
-    let maximaMean = localMaxima[0];
-
-    for (let i = 1; i < maximaCount; i++)
-        maximaMean += localMaxima[i] - localMaxima[i - 1];
-
-    maximaMean /= maximaCount;
-
-    return audioCtx.sampleRate / maximaMean;
-}
 
 const tap = () => {
     if (metronomeOn) return;
@@ -146,4 +120,9 @@ const playNote = () => {
 
 const toggleLight = () => {
 
+}
+
+module.exports = {
+    tune,
+    tap
 }

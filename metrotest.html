@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Metronome</title>
+  </head>
+  <body>
+    <canvas id="metronome"></canvas>
+    <script>
+      // Set up the canvas
+      var canvas = document.getElementById('metronome');
+      var context = canvas.getContext('2d');
+
+      // Set up the initial position of the pendulum
+      var x = 100;
+      var y = 100;
+      var angle = 0;
+
+      // Set up the initial tempo
+      var tempo = 120; // Beats per minute
+
+      // Set up the drawing style
+      context.fillStyle = 'black';
+      context.strokeStyle = 'black';
+      context.lineWidth = 2;
+
+      // Draw the metronome
+      function draw() {
+        // Clear the canvas
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the base of the metronome
+        context.beginPath();
+        context.arc(x, y, 50, 0, 2 * Math.PI);
+        context.fill();
+
+        // Draw the markings for the different tempos
+        for (var i = 0; i < 8; i++) {
+          var angle = (i / 8) * 2 * Math.PI;
+          var markX = x + Math.cos(angle) * 40;
+          var markY = y + Math.sin(angle) * 40;
+          context.beginPath();
+          context.arc(markX, markY, 5, 0, 2 * Math.PI);
+          context.fill();
+        }
+
+        // Draw the pendulum
+        var pendulumX = x + Math.sin(angle) * 80;
+        var pendulumY = y + Math.cos(angle) * 80;
+        context.beginPath();
+        context.moveTo(x, y);
+        context.lineTo(pendulumX, pendulumY);
+        context.stroke();
+        context.beginPath();
+        context.arc(pendulumX, pendulumY, 10, 0, 2 * Math.PI);
+        context.fill();
+
+        setTimeout(draw, 100);
+      }
+
+      draw();
+
+    </script>
+  </body>
+</html>
