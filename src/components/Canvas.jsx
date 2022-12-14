@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import noteNames from '../enums/noteNames';
 import '../styles/Canvas.scss'
 
-const Canvas = ({hand, tempo, note}) => {
+const Canvas = ({hand, tempo, beat, note}) => {
 
 
     const reset = (ctx, height, width, radius, length) => {
@@ -34,11 +34,10 @@ const Canvas = ({hand, tempo, note}) => {
 
             <h2 id="note" className="note">{noteNames[note]}</h2>
             <div className="tempo-container">
-                TEMPO
-                <p id="tempo" className="tempo">{tempo}</p>
+                TEMPO <p id="tempo" className="tempo">{tempo}</p>
             </div>
             <div className="beat-container">
-                BEAT <p id="beat" className="beat">4</p>
+                BEAT <p id="beat" className="beat">{beat}</p>
             </div>
 
             <div className="note-arrow">&#9660;</div>

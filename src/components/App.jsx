@@ -24,9 +24,11 @@ const App = () => {
 
     const [note, setNote] = useState(0);
     const [tempo, setTempo] = useState(60);
+    const [beat, setBeat] = useState(0);
     const [hand, setHand] = useState(0);
 
     let soundBackOn = false;
+    let met;
     
 
     const tune = async () => {
@@ -78,18 +80,21 @@ const App = () => {
 
 
     const tap = () => {
-        metronomeOn = !metronomeOn;
+        if (metronomeOn) {
+            metronomeOn = false;
+            return clearInterval(met);
+        }
+        metronomeOn = true;
+
         // first rotate all the way right
         const currRotation = hand;
-
         if (currRotation) {
             setHand(-hand);
         }
 
         // then oscilate between left and right
         let rotate = -45;
-        const met = setInterval(() => {
-            console.log(rotate)
+        met = setInterval(() => {
             setHand(rotate);
             rotate *= -1;
             // play sound
@@ -113,8 +118,9 @@ const App = () => {
     }
 
     const increaseNote = () => {
+        console.log(soundBackOn)
         if (soundBackOn) {
-
+            setNote(note + 1);
         } else {
             
         }
@@ -123,25 +129,21 @@ const App = () => {
     const decreaseNote = () => {
         if (soundBackOn) {
             console.log((note - 1) % 12)
-            setNote((note - 1) % 12)
+            setNote(note - 1 >= 0 ? note - 1 : 12);
         } else {
 
         }
     };
 
     const increaseBeat = () => {
-        if (soundBackOn) {
-            setNote((note + 1) % 12)
-        } else {
-
-        }
+        setBeat((beat + 1) % 10);
     };
 
-    
+    const decreaseBeat = () => {
+        setBeat(beat - 1 >= 0 ? beat - 1 : 9);
+    };
+
     const soundBack = () => soundBackOn = !soundBackOn;
-
-    const decreaseBeat = () => {};
-
 
     const toggleLight = () => {};
     
@@ -160,7 +162,7 @@ const App = () => {
 
         <button id="lightButton" className="light-button" onClick={toggleLight}>&#128161;</button>
 
-        <Canvas note={note} tempo={tempo} hand={hand}/>
+        <Canvas note={note} tempo={tempo} beat={beat} hand={hand}/>
         
         <button className="tuner-button" onClick={tune}>
             TUNER ON
