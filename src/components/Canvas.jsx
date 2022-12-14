@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import noteNames from '../enums/noteNames';
+import TunerInfo from './TunerInfo';
+import MetroInfo from './MetroInfo'
+import Tuner from './Tuner';
 import '../styles/Canvas.scss'
 
-const Canvas = ({hand, tempo, beat, note}) => {
-
-
+const Canvas = ({hand, tempo, beat, note, acceptedA}) => {
     const reset = (ctx, height, width, radius, length) => {
         // Draw tuner arc
         ctx.beginPath();
@@ -30,18 +30,12 @@ const Canvas = ({hand, tempo, beat, note}) => {
     // note canvas children don't work properly, these tags are kept together because they hover over the canvas
     return (
         <div className="canvas-container">
+            <TunerInfo acceptedA={acceptedA} />
+
+            <Tuner hand={hand} tempo={tempo} note={note} />
             <canvas id="metronome" className="metronome-container" />
 
-            <h2 id="note" className="note">{noteNames[note]}</h2>
-            <div className="tempo-container">
-                TEMPO <p id="tempo" className="tempo">{tempo}</p>
-            </div>
-            <div className="beat-container">
-                BEAT <p id="beat" className="beat">{beat}</p>
-            </div>
-
-            <div className="note-arrow">&#9660;</div>
-            <div id="hand" style={{transform: `rotate(${hand}deg)`, transitionDuration: `${60 / tempo}s`}} className="hand"></div>
+            <MetroInfo tempo={tempo} beat={beat} />
         </div>
     )
 }

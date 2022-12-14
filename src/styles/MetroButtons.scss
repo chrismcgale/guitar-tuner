@@ -1,0 +1,46 @@
+
+.metro-buttons {
+    position: absolute;
+    right: 0;
+    height: 100%;
+    width: 20%;
+    display: flex;
+    justify-content: center;
+    .metronome-button {
+        position: absolute;
+        top: 20%;
+        right: 20%;
+        border-radius: 60px;
+    }
+
+    .tap-button-container {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        top: 60%;
+    }
+
+    .tap-button {
+        width: 10%;
+        height: 10%;
+        padding: 20%;
+    }
+
+    .tempo-beat-container {
+        position: absolute;
+        display: flex;
+        top: 30%;
+    }
+
+
+    .beat-buttons {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tempo-buttons {
+        display: flex;
+        flex-direction: column;
+    }
+}
