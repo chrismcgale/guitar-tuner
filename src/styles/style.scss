@@ -1,0 +1,79 @@
+body {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    background-color: black;
+}
+
+p {
+    color: #5C6659;
+}
+
+
+.beat-buttons {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    right: 5%;
+}
+
+.tempo-buttons {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    right: 12%;
+}
+
+.sound-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 40%;
+    left: 10%;
+}
+
+.calib-buttons {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 20%;
+    left: 10%;
+}
+
+.light-button {
+    position: absolute;
+    top: 60%;
+    left: 10%;
+}
+
+
+.tuner-button {
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    border-radius: 60px;
+}
+
+.metronome-button {
+    position: absolute;
+    top: 20%;
+    right: 20%;
+    border-radius: 60px;
+}
+
+.tap-button-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    top: 60%;
+    right: 10%;
+}
+
+.tap-button {
+    width: 10%;
+    height: 10%;
+    padding: 20%;
+}

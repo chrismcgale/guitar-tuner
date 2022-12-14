@@ -1,0 +1,49 @@
+import React, { useEffect } from 'react';
+
+import '../styles/Canvas.scss'
+
+const Canvas = ({handRef, tempoRef, noteRef}) => {
+
+
+    const reset = (ctx, height, width, radius, length) => {
+        // Draw tuner arc
+        ctx.beginPath();
+        // we want angles 315 - 45 clockwise
+        ctx.arc(width / 2, height, radius, 7 * Math.PI / 4, 5 *  Math.PI / 4, true);
+        ctx.stroke();
+    
+        // draw thin guiding lines
+    }
+
+    useEffect(() => {
+        // Set up the canvas
+        const canvas = document.getElementById('metronome');
+        const ctx = canvas.getContext('2d');
+
+        const radius = 100;
+        const length = canvas.height - 10;
+        reset(ctx, canvas.height - 10, canvas.width, radius, length);
+    }, []);
+
+
+    // note canvas children don't work properly, these tags are kept together because they hover over the canvas
+    return (
+        <div className="canvas-container">
+            <canvas id="metronome" className="metronome-container" />
+
+            <h2 id="note" ref={noteRef} className="note">A</h2>
+            <div className="tempo-container">
+                TEMPO
+                <p id="tempo" tempo={tempoRef} className="tempo">60</p>
+            </div>
+            <div className="beat-container">
+                BEAT <p id="beat" className="beat">4</p>
+            </div>
+
+            <div className="note-arrow">&#9660;</div>
+            <div id="hand" ref={handRef} className="hand"></div>
+        </div>
+    )
+}
+
+export default Canvas;
