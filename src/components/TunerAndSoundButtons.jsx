@@ -3,8 +3,7 @@ import Pitchfinder from 'pitchfinder';
 import WavDecoder from 'wav-decoder';
 import '../styles/TunerAndSoundButtons.scss'
 
-const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA }) => {
-
+const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetronomeOn }) => {
     const detectPitch = new Pitchfinder.YIN();
 
     // A0
@@ -14,7 +13,6 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA }) => {
     
     let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let analyserNode = audioCtx.createAnalyser()
-    let metronomeOn = false;
     let soundBackOn = false;
 
 
@@ -25,7 +23,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA }) => {
 
     const tune = async () => {
         try {
-            metronomeOn = false;
+            setMetronomeOn(false)
             const stream = await navigator.mediaDevices.getUserMedia({audio: true})
 
             let microphoneStream = audioCtx.createMediaStreamSource(stream);

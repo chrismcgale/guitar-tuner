@@ -1,20 +1,17 @@
 import React from 'react';
 import '../styles/MetroButtons.scss'
 
-const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat}) => {
-
+const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeOn, setMetronomeOn}) => {
     const minTempo = 30;
     const maxTempo = 252;
-
-    let met;
-
+    let metInterval;
 
     const tap = () => {
         if (metronomeOn) {
-            metronomeOn = false;
+            setMetronomeOn(false);
             return clearInterval(met);
         }
-        metronomeOn = true;
+        setMetronomeOn(true);
 
         // first rotate all the way right
         const currRotation = hand;
@@ -24,11 +21,12 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat}) => {
 
         // then oscilate between left and right
         let rotate = -45;
-        met = setInterval(() => {
+        metInterval = setInterval(() => {
+            console.log(metronomeOn)
             setHand(rotate);
             rotate *= -1;
             // play sound
-            if (!metronomeOn) clearInterval(met);
+            if (!metronomeOn) clearInterval(metInterval);
         }, (60 / tempo) * 1000);
     }
 
@@ -47,14 +45,9 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat}) => {
         else setTempo(tempo - dec)
     }
 
+    const increaseBeat = () => setBeat((beat + 1) % 10);
 
-    const increaseBeat = () => {
-        setBeat((beat + 1) % 10);
-    };
-
-    const decreaseBeat = () => {
-        setBeat(beat - 1 >= 0 ? beat - 1 : 9);
-    };
+    const decreaseBeat = () => setBeat(beat - 1 >= 0 ? beat - 1 : 9);
 
     
     return (
