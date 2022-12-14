@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Pitchfinder from 'pitchfinder';
 import WavDecoder from 'wav-decoder';
 
 import Canvas from './Canvas';
+import noteNames from '../enums/noteNames';
 import '../styles/style.scss'
 
 
@@ -14,21 +15,18 @@ const App = () => {
     // A9
     const highestFreq = 14080;
 
-    let tempo = 60;
     const minTempo = 30;
     const maxTempo = 252;
-
-    const noteNames = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
-
-
 
     let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let analyserNode = audioCtx.createAnalyser()
     let metronomeOn = false;
 
-    let noteRef = useRef();
-    let tempoRef = useRef();
-    let handRef = useRef();
+    const [note, setNote] = useState(0);
+    const [tempo, setTempo] = useState(60);
+    const [hand, setHand] = useState(0);
+
+    let soundBackOn = false;
     
 
     const tune = async () => {
@@ -44,7 +42,6 @@ const App = () => {
 
             setInterval(() => {
                 // component unmounted
-                if (!handRef?.target || !noteRef.target) return;
                 analyserNode.getFloatTimeDomainData(audioData);
 
                 const sigSounds = audioData.filter((d) => Math.abs(d) > 0.015);
@@ -59,11 +56,9 @@ const App = () => {
 
                 const index = Math.round(relNote) % 12;
 
-                const note = noteNames[index];
-
                 let rotate = 45 * (relNote - Math.round(relNote));
 
-                const currRotation = handRef.target.style.transform.match(/rotate\((.+)\)/);
+                const currRotation = hand;
 
                 if (currRotation) {
                     const currDeg = currRotation.slice(1)[0].replace(/deg$/, '');
@@ -72,9 +67,9 @@ const App = () => {
                     rotate = Math.abs(rotate + currDeg);
                 }
 
-                noteRef.target.innerHTML = `${note}`;
+                setNote(index);
 
-                handRef.target.style.transform = `rotate(${rotate}deg)`;
+                setHand(rotate);
             }, 600);
         } catch(err) {
             console.log(err);
@@ -83,22 +78,19 @@ const App = () => {
 
 
     const tap = () => {
-        if (metronomeOn || !handRef?.target) return;
-        metronomeOn = true;
+        metronomeOn = !metronomeOn;
         // first rotate all the way right
-        const currRotation = handRef?.target?.style.transform.match(/rotate\((.+)\)/);
+        const currRotation = hand;
 
         if (currRotation) {
-            const currDeg = currRotation.slice(1)[0].replace(/deg$/, '');
-
-            handRef.target.style.transform = `rotate(${ - currDeg}deg)`;
+            setHand(-hand);
         }
 
         // then oscilate between left and right
         let rotate = -45;
         const met = setInterval(() => {
-            if (!handRef?.target) return;
-            handRef.target.style.transform = `rotate(${-45 + rotate}deg)`;
+            console.log(rotate)
+            setHand(rotate);
             rotate *= -1;
             // play sound
             if (!metronomeOn) clearInterval(met);
@@ -109,31 +101,44 @@ const App = () => {
 
 
     const increaseTempo = () => {
-        if (!handRef?.target || !tempoRef?.target) return;
         const inc = Math.floor(tempo / 20);
-        if (tempo + inc > maxTempo) tempo = minTempo;
-        else tempo += inc;
-        handRef.target.style.transitionDuration = `${60 / tempo}s`;
-        tempoRef.target.innerHTML = `${tempo}`;
+        if (tempo + inc > maxTempo) setTempo(minTempo);
+        else setTempo(tempo + inc);
     }
 
     const decreaseTempo = () => {
-        if (!handRef?.target || !tempoRef?.target) return;
         const dec = Math.floor(tempo / 20);
-        if (tempo + dec > minTempo) tempo = maxTempo;
-        else tempo -= dec;
-        handRef.target.style.transitionDuration = `${60 / tempo}s`;
-        tempoRef.target.innerHTML = `${tempo}`;
+        if (tempo + dec > minTempo) setTempo(maxTempo);
+        else setTempo(tempo - dec)
     }
 
-    const increaseNote = () => {};
+    const increaseNote = () => {
+        if (soundBackOn) {
 
-    const decreaseNote = () => {};
+        } else {
+            
+        }
+    };
 
-    const increaseBeat = () => {};
+    const decreaseNote = () => {
+        if (soundBackOn) {
+            console.log((note - 1) % 12)
+            setNote((note - 1) % 12)
+        } else {
+
+        }
+    };
+
+    const increaseBeat = () => {
+        if (soundBackOn) {
+            setNote((note + 1) % 12)
+        } else {
+
+        }
+    };
 
     
-    const playNote = () => {};
+    const soundBack = () => soundBackOn = !soundBackOn;
 
     const decreaseBeat = () => {};
 
@@ -150,12 +155,12 @@ const App = () => {
 
         <div className="sound-container">
             <p>SOUND BACK</p>
-            <button id="soundBack" onClick={playNote}>&#9673;</button>
+            <button id="soundBack" onClick={soundBack}>&#9673;</button>
         </div>
 
         <button id="lightButton" className="light-button" onClick={toggleLight}>&#128161;</button>
 
-        <Canvas noteRef={noteRef} tempoRef={tempoRef} handRef={handRef}/>
+        <Canvas note={note} tempo={tempo} hand={hand}/>
         
         <button className="tuner-button" onClick={tune}>
             TUNER ON

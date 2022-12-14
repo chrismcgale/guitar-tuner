@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-
+import noteNames from '../enums/noteNames';
 import '../styles/Canvas.scss'
 
-const Canvas = ({handRef, tempoRef, noteRef}) => {
+const Canvas = ({hand, tempo, note}) => {
 
 
     const reset = (ctx, height, width, radius, length) => {
@@ -26,22 +26,23 @@ const Canvas = ({handRef, tempoRef, noteRef}) => {
     }, []);
 
 
+
     // note canvas children don't work properly, these tags are kept together because they hover over the canvas
     return (
         <div className="canvas-container">
             <canvas id="metronome" className="metronome-container" />
 
-            <h2 id="note" ref={noteRef} className="note">A</h2>
+            <h2 id="note" className="note">{noteNames[note]}</h2>
             <div className="tempo-container">
                 TEMPO
-                <p id="tempo" tempo={tempoRef} className="tempo">60</p>
+                <p id="tempo" className="tempo">{tempo}</p>
             </div>
             <div className="beat-container">
                 BEAT <p id="beat" className="beat">4</p>
             </div>
 
             <div className="note-arrow">&#9660;</div>
-            <div id="hand" ref={handRef} className="hand"></div>
+            <div id="hand" style={{transform: `rotate(${hand}deg)`, transitionDuration: `${60 / tempo}s`}} className="hand"></div>
         </div>
     )
 }

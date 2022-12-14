@@ -9,14 +9,14 @@
     z-index: 0;
     display: flex;
     justify-content: center;
+    p {
+        color: black;
+    }
 }
 
 
 .metronome-container {
     width: 80%;
-    p {
-        color: black;
-    }
 }
 
 
