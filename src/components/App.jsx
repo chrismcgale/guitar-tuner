@@ -7,7 +7,7 @@ import '../styles/style.scss'
 
 
 const App = () => {
-    const [note, setNote] = useState('A');
+    const [note, setNote] = useState(0);
     const [tempo, setTempo] = useState(60);
     const [beat, setBeat] = useState(0);
     const [hand, setHand] = useState(0);

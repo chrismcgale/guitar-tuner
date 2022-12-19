@@ -1,6 +1,4 @@
-import React, { useEffect } from 'react';
-import Pitchfinder from 'pitchfinder';
-import WavDecoder from 'wav-decoder';
+import React, { useEffect, useState } from 'react';
 import '../styles/TunerAndSoundButtons.scss'
 import noteNames from '../enums/noteNames';
 
@@ -10,13 +8,32 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
     
     const bufferLength = 2048;
     analyserNode.fftSize = bufferLength;
-    let soundBackOn = false;
+    const [soundBackOn, setSoundBackOn] = useState(false);
+
+    let soundBackInt = null;
 
 
     // Get mic access
     useEffect(() => {
 
     }, [])
+
+    useEffect(() => {
+        if (soundBackOn) {
+            soundBackInt = setInterval(() => {
+                let o = audioCtx.createOscillator();
+              let g = audioCtx.createGain();
+              o.type = 'triangle';
+              o.connect(g);
+              o.frequency.value = 440;
+              g.connect(audioCtx.destination);
+              o.start(0);
+              g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+          },1000)
+        } else {
+            clearInterval(soundBackInt)
+        }
+    }, [soundBackOn])
 
     const getCorrolatedFrequency = (audioData) => {
         var SIZE = audioData.length;
@@ -133,7 +150,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
                 let rotate = 45 * (unroundedNote - halfStepsBelowMiddleC);
                 if (hand)  rotate = Math.abs(rotate + hand);
 
-                setNote(key);
+                setNote(noteNames[index]);
 
                 setHand(rotate);
             }, 600);
@@ -144,7 +161,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     const increaseNote = () => {
         if (soundBackOn) {
-            setNote(note + 1);
+            setNote(note < 11 ? note + 1 : 0);
         } else {
             setAcceptedA(acceptedA < 480 ? acceptedA + 1 : 410);
         }
@@ -152,15 +169,14 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     const decreaseNote = () => {
         if (soundBackOn) {
-            setNote(note - 1 >= 0 ? note - 1 : 12);
+            setNote(note > 0 ? note - 1 : 11);
         } else {
             setAcceptedA(acceptedA > 410 ? acceptedA - 1 : 480);
         }
     };
 
-    const soundBack = () => soundBackOn = !soundBackOn;
+    const soundBack = () => setSoundBackOn(!soundBackOn);
 
-    const toggleLight = () => {};
     
     return (
         <div className="tuner-sound-buttons">
