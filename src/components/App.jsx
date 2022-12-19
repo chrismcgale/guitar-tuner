@@ -7,7 +7,7 @@ import '../styles/style.scss'
 
 
 const App = () => {
-    const [note, setNote] = useState(0);
+    const [note, setNote] = useState('A');
     const [tempo, setTempo] = useState(60);
     const [beat, setBeat] = useState(0);
     const [hand, setHand] = useState(0);
@@ -17,7 +17,7 @@ const App = () => {
 
     return (
     <>
-        <TunerAndSoundButtons note={note} setNote={setNote} acceptedA={acceptedA} setAcceptedA={setAcceptedA} setMetronomeOn={setMetronomeOn} />
+        <TunerAndSoundButtons note={note} setNote={setNote} acceptedA={acceptedA} setAcceptedA={setAcceptedA} setMetronomeOn={setMetronomeOn} hand={hand} setHand={setHand}/>
 
         <Canvas note={note} tempo={tempo} beat={beat} hand={hand} acceptedA={acceptedA} />
 

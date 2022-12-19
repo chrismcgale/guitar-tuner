@@ -36,11 +36,14 @@ module.exports = {
                     }
                 }
             ]
-        }
+        },
     ]
   },
   resolve: {
     extensions: ['.jsx', '.js', '.json'],
+    fallback: {
+      fs: false,
+    }
   },
   devtool: 'inline-source-map',
   devServer: {
