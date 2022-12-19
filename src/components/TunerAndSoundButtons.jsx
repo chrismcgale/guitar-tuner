@@ -8,6 +8,9 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
     
     const bufferLength = 2048;
     analyserNode.fftSize = bufferLength;
+    analyserNode.minDecibels = -100;
+    analyserNode.maxDecibels = -10;
+    analyserNode.smoothingTimeConstant = 0.85;
     const [soundBackOn, setSoundBackOn] = useState(false);
 
     let soundBackInt = null;
@@ -35,87 +38,80 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
         }
     }, [soundBackOn])
 
+    const rootMeanSquare = (audioData, size) => {
+        let sumOfSquares = 0;
+        for (let i = 0; i < size; i++) sumOfSquares += audioData[i] ** 2;
+
+        return Math.sqrt(sumOfSquares / size);
+    }
+
     const getCorrolatedFrequency = (audioData) => {
-        var SIZE = audioData.length;
-        var sumOfSquares = 0;
-        for (var i = 0; i < SIZE; i++) {
-            var val = audioData[i];
-            sumOfSquares += val * val;
-        }
-        var rootMeanSquare = Math.sqrt(sumOfSquares / SIZE)
-        if (rootMeanSquare < 0.01) {
+        const size = audioData.length;
+        const rms = rootMeanSquare(audioData, size);
+        if (rms < 0.01) {
             return -1;
         }
 
         // Find a range in the buffer where the values are below a given threshold.
-        var r1 = 0;
-        var r2 = SIZE - 1;
-        var threshold = 0.2;
+        let r1 = 0;
+        let r2 = size - 1;
+        let threshold = 0.2;
 
         // Walk up for r1
-        for (var i = 0; i < SIZE / 2; i++) {
+        for (let i = 0; i < size / 2; i++) {
             if (Math.abs(audioData[i]) < threshold) {
-            r1 = i;
-            break;
+                r1 = i;
+                break;
             }
         }
 
         // Walk down for r2
-        for (var i = 1; i < SIZE / 2; i++) {
-            if (Math.abs(audioData[SIZE - i]) < threshold) {
-            r2 = SIZE - i;
-            break;
+        for (let i = size - 1; i >= size / 2; i--) {
+            if (Math.abs(audioData[i]) < threshold) {
+                r2 = i;
+                break;
             }
         }
 
         // Trim the buffer to these ranges and update SIZE.
-        audioData = audioData.slice(r1, r2);
-        SIZE = audioData.length
-
-        var cds = new Array(SIZE).fill(0);
+        const trimmedData = audioData.slice(r1, r2);
+        const trimmedSize = trimmedData.length
 
         // Create a new array of the sums of offsets to do the autocorrelation
-        var offsetSums = new Array(bufferLength).fill(0);
+        let cds = new Array(bufferLength).fill(0);
         // For each potential offset, calculate the sum of each buffer value times its offset value
-        for (let offset = 0; offset < SIZE; offset++) {
-            for (let j = 0; j < SIZE - offset; j++) {
-                cds[offset] = cds[offset] + audioData[j] * audioData[j+offset]
+        for (let offset = 0; offset < trimmedSize; offset++) {
+            for (let j = 0; j < trimmedSize - offset; j++) {
+                cds[offset] += trimmedData[j] * trimmedData[j + offset];
             }
         }
 
-        var d = 0;
-        while (d < SIZE && cds[d] > cds[d+1]) {
-          d++;
-        }
+        let d = 0;
+        while (d < trimmedSize && cds[d] > cds[d + 1]) d++;
 
-        // Iterate from that index through the end and find the maximum sum
-        var maxValue = -1;
-        var maxIndex = -1;
-        for (var i = d; i < SIZE; i++) {
-            if (cds[i] > maxValue) {
-            maxValue = cds[i];
-            maxIndex = i;
-            }
-        }
 
-        var T0 = maxIndex;
+       // Iterate from that index through the end and find the maximum sum
+       let maxValue = -1;
+       let maxIndex = -1;
+       for (var i = d; i < trimmedSize; i++) {
+           if (cds[i] > maxValue) {
+                maxValue = cds[i];
+                maxIndex = i;
+           }
+       }
+
+        let T0 = maxIndex;
         
-        var x1 = cds[T0 - 1];
-        var x2 = cds[T0];
-        var x3 = cds[T0 + 1]
+        // smooth out error
+        let y1 = cds[T0 - 1];
+        let y2 = cds[T0];
+        let y3 = cds[T0 + 1]
 
-        var a = (x1 + x3 - 2 * x2) / 2;
-        var b = (x3 - x1) / 2
-        if (a) {
-            T0 = T0 - b / (2 * a);
-        }
+        let a = (y1 + y3 - 2 * y2) / 2;
+        let b = (y3 - y1) / 2;
+        if (a !== 0) T0 -=  b / (2 * a);
 
-        // Once we have the best offset for the repetition, we can calculate the frequency from the sampleRate
-        const pitch = audioCtx.sampleRate / cds[T0]
-
-        console.log( cds[T0])
-
-        return pitch;
+        return audioCtx.sampleRate / T0;
     }
 
     const tune = async () => {
@@ -126,31 +122,31 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
             let microphoneStream = audioCtx.createMediaStreamSource(stream);
             microphoneStream.connect(analyserNode);
 
-            let audioData = new Uint8Array(bufferLength);
+            let audioData = new Float32Array(bufferLength);
 
             setInterval(() => {
                 // component unmounted
-                analyserNode.getByteTimeDomainData(audioData);
+                analyserNode.getFloatTimeDomainData(audioData);
 
                const pitch = getCorrolatedFrequency(audioData);
+
+               if (pitch < 0) return;
 
                // c = 440.0(2^-4.75)
                 const c0 = 440.0 * Math.pow(2.0, -4.75);
                 // Convert the frequency to a musical pitch.
-                const unroundedNote = 12.0 * Math.log2(pitch / c0);
+                const unroundedNote =  12 * (Math.log( pitch / 440 ) /Math.log(2));
                 // h = round(12log2(f / c))
-                const halfStepsBelowMiddleC = Math.round(unroundedNote)
+                const halfStepsBelowMiddleC = Math.round(unroundedNote) + 69
                 // o = floor(h / 12)
                 const octave = Math.floor(halfStepsBelowMiddleC / 12.0);
                 const index = Math.floor(halfStepsBelowMiddleC % 12);
                 const key = noteNames[index];
-
-                console.log(pitch)
-
+                
                 let rotate = 45 * (unroundedNote - halfStepsBelowMiddleC);
                 if (hand)  rotate = Math.abs(rotate + hand);
 
-                setNote(noteNames[index]);
+                setNote(index);
 
                 setHand(rotate);
             }, 600);

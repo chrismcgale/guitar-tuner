@@ -23,7 +23,6 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
         // then oscilate between left and right
         let rotate = -45;
         metInterval = setInterval(() => {
-            console.log(metronomeOn)
             setHand(rotate);
             rotate *= -1;
             // play sound
