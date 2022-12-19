@@ -4,6 +4,7 @@ import '../styles/MetroButtons.scss'
 const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeOn, setMetronomeOn}) => {
     const minTempo = 30;
     const maxTempo = 252;
+    let lastTime = 0;
     let metInterval;
 
     const tap = () => {
@@ -30,7 +31,16 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
         }, (60 / tempo) * 1000);
     }
 
-    const tapTempo = () => {};
+    const tapTempo = () => {
+        if (lastTime !== 0) {
+            const now = new Date();
+            const seconds = Math.abs(now.getTime() - lastTime.getTime())/1000;
+            setTempo(Math.floor(60 / (seconds)));
+            lastTime = now;
+        } else {
+            lastTime = new Date();
+        }
+    };
 
 
     const increaseTempo = () => {
@@ -48,6 +58,8 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
     const increaseBeat = () => setBeat((beat + 1) % 10);
 
     const decreaseBeat = () => setBeat(beat - 1 >= 0 ? beat - 1 : 9);
+
+    document.addEventListener('keyup', () => tapTempo());
 
     
     return (

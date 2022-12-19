@@ -179,8 +179,6 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
                 <button id="soundBack" onClick={soundBack}>&#9673;</button>
             </div>
 
-            <button id="lightButton" className="light-button" onClick={toggleLight}>&#128161;</button>
-
         </div>
     );
 };
