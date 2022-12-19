@@ -20,42 +20,42 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     const getCorrolatedFrequency = (audioData) => {
         var SIZE = audioData.length;
-  var sumOfSquares = 0;
-  for (var i = 0; i < SIZE; i++) {
-    var val = audioData[i];
-    sumOfSquares += val * val;
-  }
-  var rootMeanSquare = Math.sqrt(sumOfSquares / SIZE)
-  if (rootMeanSquare < 0.01) {
-    return -1;
-  }
+        var sumOfSquares = 0;
+        for (var i = 0; i < SIZE; i++) {
+            var val = audioData[i];
+            sumOfSquares += val * val;
+        }
+        var rootMeanSquare = Math.sqrt(sumOfSquares / SIZE)
+        if (rootMeanSquare < 0.01) {
+            return -1;
+        }
 
-  // Find a range in the buffer where the values are below a given threshold.
-  var r1 = 0;
-  var r2 = SIZE - 1;
-  var threshold = 0.2;
+        // Find a range in the buffer where the values are below a given threshold.
+        var r1 = 0;
+        var r2 = SIZE - 1;
+        var threshold = 0.2;
 
-  // Walk up for r1
-  for (var i = 0; i < SIZE / 2; i++) {
-    if (Math.abs(audioData[i]) < threshold) {
-      r1 = i;
-      break;
-    }
-  }
+        // Walk up for r1
+        for (var i = 0; i < SIZE / 2; i++) {
+            if (Math.abs(audioData[i]) < threshold) {
+            r1 = i;
+            break;
+            }
+        }
 
-  // Walk down for r2
-  for (var i = 1; i < SIZE / 2; i++) {
-    if (Math.abs(audioData[SIZE - i]) < threshold) {
-      r2 = SIZE - i;
-      break;
-    }
-  }
+        // Walk down for r2
+        for (var i = 1; i < SIZE / 2; i++) {
+            if (Math.abs(audioData[SIZE - i]) < threshold) {
+            r2 = SIZE - i;
+            break;
+            }
+        }
 
-  // Trim the buffer to these ranges and update SIZE.
-  audioData = audioData.slice(r1, r2);
-  SIZE = audioData.length
+        // Trim the buffer to these ranges and update SIZE.
+        audioData = audioData.slice(r1, r2);
+        SIZE = audioData.length
 
-  var cds = new Array(SIZE).fill(0);
+        var cds = new Array(SIZE).fill(0);
 
         // Create a new array of the sums of offsets to do the autocorrelation
         var offsetSums = new Array(bufferLength).fill(0);
@@ -117,13 +117,20 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
                const pitch = getCorrolatedFrequency(audioData);
 
-                const relNote = Math.log2(pitch / lowestFreq) * 12;
-
-                const index = Math.round(relNote) % 12;
-
+               // c = 440.0(2^-4.75)
+                const c0 = 440.0 * Math.pow(2.0, -4.75);
+                // Convert the frequency to a musical pitch.
+                const unroundedNote = 12.0 * Math.log2(pitch / c0);
+                // h = round(12log2(f / c))
+                const halfStepsBelowMiddleC = Math.round(unroundedNote)
+                // o = floor(h / 12)
+                const octave = Math.floor(halfStepsBelowMiddleC / 12.0);
+                const index = Math.floor(halfStepsBelowMiddleC % 12);
                 const key = noteNames[index];
 
-                let rotate = 45 * (relNote - Math.round(relNote));
+                console.log(pitch)
+
+                let rotate = 45 * (unroundedNote - halfStepsBelowMiddleC);
                 if (hand)  rotate = Math.abs(rotate + hand);
 
                 setNote(key);
