@@ -5,10 +5,10 @@ import '../styles/MetroInfo.scss'
 const MetroInfo = ({tempo, beat}) => (
     <div className='metro-info'>
         <div className="tempo-container">
-            TEMPO <p id="tempo" className="tempo">{tempo}</p>
+        <p id="tempo" className="tempo">TEMPO {tempo}</p>
         </div>
         <div className="beat-container">
-            BEAT <p id="beat" className="beat">{beat}</p>
+        <p id="beat" className="beat">BEAT {beat}</p>
         </div>
     </div>
 );

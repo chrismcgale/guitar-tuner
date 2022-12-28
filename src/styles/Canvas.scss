@@ -67,14 +67,20 @@
 .metro-info {
     position: absolute;
     right: 0;
+    height: 100%;
 }
 
 
 .beat-container {
     position: absolute;
     right: 0;
-    top: 25%;
     display: flex;
 }
 
 
+.tempo-container {
+    position: absolute;
+    right: 0;
+    top: 15%;
+    display: flex;
+}

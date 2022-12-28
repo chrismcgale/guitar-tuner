@@ -22,22 +22,24 @@
     }
 
     .tap-button {
-        width: 10%;
         height: 10%;
         padding: 20%;
     }
 
     .tempo-beat-container {
         position: absolute;
-        display: flex;
-        justify-content: space-between;
         top: 30%;
+        
     }
 
 
     .beat-buttons {
         display: flex;
         flex-direction: column;
+        p {
+            display: flex;;
+        justify-content: center;
+        }
     }
 
     .tempo-buttons {

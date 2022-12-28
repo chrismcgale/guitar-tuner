@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../styles/TunerAndSoundButtons.scss'
 import noteNames from '../enums/noteNames';
+import noteToFreq from '../enums/noteToFreq';
 
 const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetronomeOn, hand, setHand }) => {
     let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -13,7 +14,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
     analyserNode.smoothingTimeConstant = 0.85;
     const [soundBackOn, setSoundBackOn] = useState(false);
 
-    let soundBackInt = null;
+    const soundBackInt = useRef(null);
 
 
     // Get mic access
@@ -23,20 +24,23 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     useEffect(() => {
         if (soundBackOn) {
-            soundBackInt = setInterval(() => {
-                let o = audioCtx.createOscillator();
+            soundBackInt.current = setInterval(() => {
+            let o = audioCtx.createOscillator();
               let g = audioCtx.createGain();
               o.type = 'triangle';
               o.connect(g);
-              o.frequency.value = 440;
+              o.frequency.value = noteToFreq[noteNames[note]];
               g.connect(audioCtx.destination);
               o.start(0);
               g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+              if (!soundBackOn) {
+                clearInterval(soundBackInt.current)
+              }
           },1000)
         } else {
-            clearInterval(soundBackInt)
+            clearInterval(soundBackInt.current)
         }
-    }, [soundBackOn])
+    }, [soundBackOn, note])
 
     const rootMeanSquare = (audioData, size) => {
         let sumOfSquares = 0;
@@ -142,8 +146,8 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
                 const octave = Math.floor(halfStepsBelowMiddleC / 12.0);
                 const index = Math.floor(halfStepsBelowMiddleC % 12);
                 const key = noteNames[index];
-                
-                let rotate = 45 * (unroundedNote - halfStepsBelowMiddleC);
+
+                let rotate = 45 * (unroundedNote  + 69 - halfStepsBelowMiddleC);
                 if (hand)  rotate = Math.abs(rotate + hand);
 
                 setNote(index);
@@ -157,6 +161,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     const increaseNote = () => {
         if (soundBackOn) {
+            clearInterval(soundBackInt.current)
             setNote(note < 11 ? note + 1 : 0);
         } else {
             setAcceptedA(acceptedA < 480 ? acceptedA + 1 : 410);
@@ -165,6 +170,7 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     const decreaseNote = () => {
         if (soundBackOn) {
+            clearInterval(soundBackInt.current)
             setNote(note > 0 ? note - 1 : 11);
         } else {
             setAcceptedA(acceptedA > 410 ? acceptedA - 1 : 480);

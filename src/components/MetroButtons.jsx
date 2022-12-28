@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import '../styles/MetroButtons.scss'
 
 const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeOn, setMetronomeOn}) => {
     const minTempo = 30;
     const maxTempo = 252;
     let lastTime = 0;
-    let metInterval;
+    const metInterval = useRef(null);
+
+    useEffect(() => {
+        if (!metronomeOn) return;
+
+        // then oscilate between left and right
+        let rotate = -45;
+        metInterval.current = setInterval(() => {
+            setHand(rotate);
+            rotate *= -1;
+            // play sound
+            console.log(metronomeOn)
+            if (!metronomeOn) clearInterval(metInterval);
+        }, (60 / tempo) * 1000);
+    }, [metronomeOn]);
 
     const tap = () => {
         if (metronomeOn) {
             setMetronomeOn(false);
-            return clearInterval(met);
+            clearInterval(metInterval.current);
+            return setHand(0);
         }
         setMetronomeOn(true);
 
@@ -19,15 +34,6 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
         if (currRotation) {
             setHand(-hand);
         }
-
-        // then oscilate between left and right
-        let rotate = -45;
-        metInterval = setInterval(() => {
-            setHand(rotate);
-            rotate *= -1;
-            // play sound
-            if (!metronomeOn) clearInterval(metInterval);
-        }, (60 / tempo) * 1000);
     }
 
     const tapTempo = () => {

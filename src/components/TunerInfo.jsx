@@ -4,7 +4,7 @@ import '../styles/TunerInfo.scss'
 
 const TunerInfo = ({acceptedA}) => (
     <div className='tuner-info'>
-        <div className="tempo-container">
+        <div className="tuner-container">
             TUNER <p id="tempo" className="tempo">{acceptedA}Hz</p>
         </div>
     </div>
