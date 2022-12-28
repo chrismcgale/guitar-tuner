@@ -9,8 +9,8 @@ module.exports = {
   entry: './src/index.jsx',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'public', 'dist'),
-    publicPath: '/dist/',
+    path: path.resolve(__dirname, 'public'),
+    publicPath: '/public/',
   },
   module: {
     rules: [
