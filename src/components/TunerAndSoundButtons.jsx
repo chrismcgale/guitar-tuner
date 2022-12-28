@@ -4,39 +4,30 @@ import noteNames from '../enums/noteNames';
 import noteToFreq from '../enums/noteToFreq';
 
 const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetronomeOn, hand, setHand }) => {
-    let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let analyserNode = audioCtx.createAnalyser()
-    
-    const bufferLength = 2048;
-    analyserNode.fftSize = bufferLength;
-    analyserNode.minDecibels = -100;
-    analyserNode.maxDecibels = -10;
-    analyserNode.smoothingTimeConstant = 0.85;
     const [soundBackOn, setSoundBackOn] = useState(false);
 
     const soundBackInt = useRef(null);
+    const tuneInt = useRef(null);
 
+    const bufferLength = 2048;
 
-    // Get mic access
-    useEffect(() => {
-
-    }, [])
 
     useEffect(() => {
         if (soundBackOn) {
+            clearInterval(tuneInt.current);
             soundBackInt.current = setInterval(() => {
-            let o = audioCtx.createOscillator();
-              let g = audioCtx.createGain();
-              o.type = 'triangle';
-              o.connect(g);
-              o.frequency.value = noteToFreq[noteNames[note]];
-              g.connect(audioCtx.destination);
-              o.start(0);
-              g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
-              if (!soundBackOn) {
-                clearInterval(soundBackInt.current)
-              }
-          },1000)
+                    let o = audioCtx.createOscillator();
+                let g = audioCtx.createGain();
+                o.type = 'triangle';
+                o.connect(g);
+                o.frequency.value = noteToFreq[noteNames[note]];
+                g.connect(audioCtx.destination);
+                o.start(0);
+                g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+                if (!soundBackOn) {
+                    clearInterval(soundBackInt.current)
+                }
+            }, 1000)
         } else {
             clearInterval(soundBackInt.current)
         }
@@ -115,12 +106,22 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
         let b = (y3 - y1) / 2;
         if (a !== 0) T0 -=  b / (2 * a);
 
-        return audioCtx.sampleRate / T0;
+        return 2048 / T0;
     }
 
     const tune = async () => {
         try {
+            clearInterval(tuneInt);
+            clearInterval(soundBackInt)
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let analyserNode = audioCtx.createAnalyser()
+            
+            analyserNode.fftSize = bufferLength;
+            analyserNode.minDecibels = -100;
+            analyserNode.maxDecibels = -10;
+            analyserNode.smoothingTimeConstant = 0.85;
             setMetronomeOn(false)
+            clearInterval(soundBackInt.current);
             const stream = await navigator.mediaDevices.getUserMedia({audio: true})
 
             let microphoneStream = audioCtx.createMediaStreamSource(stream);
@@ -128,12 +129,13 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
             let audioData = new Float32Array(bufferLength);
 
-            setInterval(() => {
+            tuneInt.current = setInterval(() => {
                 // component unmounted
                 analyserNode.getFloatTimeDomainData(audioData);
 
                const pitch = getCorrolatedFrequency(audioData);
 
+               console.log(pitch)
                if (pitch < 0) return;
 
                // c = 440.0(2^-4.75)
