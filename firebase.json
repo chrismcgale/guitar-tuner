@@ -1,0 +1,17 @@
+{
+  "apiKey": "AIzaSyCXKL36pJrkRp512jwY3J1DcIyktfU3ZaA",
+  "authDomain": "tuner-2beb6.firebaseapp.com",
+  "projectId": "tuner-2beb6",
+  "storageBucket": "tuner-2beb6.appspot.com",
+  "messagingSenderId": "9908718717",
+  "appId": "1:9908718717:web:6bd838c8d5269e018f3514",
+  "measurementId": "G-JNYV64Y3JZ",
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
