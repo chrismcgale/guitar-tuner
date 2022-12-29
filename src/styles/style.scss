@@ -46,3 +46,21 @@ p {
     color: #5C6659;
 }
 
+.button-on {
+  color: red;
+}
+
+.canvas-container {
+  position: absolute;
+  top: 30%;
+  left: 20%;
+  width: 60%;
+  height: 40%;
+  //background-color: #5C6659;
+  z-index: 0;
+  display: flex;
+  justify-content: center;
+  p {
+      color: black;
+  }
+}

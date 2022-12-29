@@ -1,5 +1,4 @@
 import React from 'react';
-
 import '../styles/MetroInfo.scss'
 
 const MetroInfo = ({tempo, beat}) => (

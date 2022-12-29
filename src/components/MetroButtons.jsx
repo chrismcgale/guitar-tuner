@@ -1,19 +1,33 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import '../styles/MetroButtons.scss'
 
-const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeOn, setMetronomeOn}) => {
+const MetroButtons = ({
+    tunerOn,
+    soundBackOn,
+    metOn,
+    setMetOn,
+    setHand, 
+    tempo, 
+    setTempo, 
+    beat, 
+    setBeat, 
+}) => {
+    const metInt = useRef(null);
     const minTempo = 30;
     const maxTempo = 252;
     let lastTime = 0;
-    const metInterval = useRef(null);
 
     useEffect(() => {
-        if (!metronomeOn) return;
+        // clear interval on off
+        if (!metOn) clearInterval(metInt.current);
+    }, [metOn] );
 
+    const tap = () => {
         // then oscilate between left and right
         let rotate = -45;
         let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        metInterval.current = setInterval(() => {
+        console.log(metInt)
+        metInt.current = setInterval(() => {
             setHand(rotate);
             rotate *= -1;
             // play sound
@@ -25,23 +39,7 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
             g.connect(audioCtx.destination);
             o.start(0);
             g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
-            if (!metronomeOn) clearInterval(metInterval);
         }, (60 / tempo) * 1000);
-    }, [metronomeOn]);
-
-    const tap = () => {
-        if (metronomeOn) {
-            setMetronomeOn(false);
-            clearInterval(metInterval.current);
-            return setHand(0);
-        }
-        setMetronomeOn(true);
-
-        // first rotate all the way right
-        const currRotation = hand;
-        if (currRotation) {
-            setHand(-hand);
-        }
     }
 
     const tapTempo = () => {
@@ -74,12 +72,16 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
 
     document.addEventListener('keyup', () => tapTempo());
 
-    
     return (
         <div className="metro-buttons">
-            <button className="metronome-button" onClick={tap}>
-                METRONOME ON
-            </button>
+            {!metOn 
+                ? <button className="metronome-button" onClick={() => {setMetOn(true); tap();}} disabled={soundBackOn || tunerOn}>
+                    METRONOME ON
+                </button>
+                : <button className="metronome-button button-on" onClick={() => setMetOn(false)}>
+                    METRONOME OFF
+                </button>
+            }
 
             <div className='tempo-beat-container' >
                 <div className="beat-buttons">

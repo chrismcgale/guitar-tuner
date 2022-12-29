@@ -1,5 +1,6 @@
 import React from 'react';
 import noteNames from '../enums/noteNames';
+import '../styles/Tuner.scss'
 
 const Tuner = ({note, hand, tempo}) => (
     <>

@@ -12,6 +12,7 @@ module.exports = {
     path: path.resolve(__dirname, 'public'),
     publicPath: '/public/',
   },
+  mode: 'development',
   module: {
     rules: [
         {

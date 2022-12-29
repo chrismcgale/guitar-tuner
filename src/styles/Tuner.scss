@@ -1,25 +1,7 @@
 
-.canvas-container {
-    position: absolute;
-    top: 30%;
-    left: 20%;
-    width: 60%;
-    height: 40%;
-    //background-color: #5C6659;
-    z-index: 0;
-    display: flex;
-    justify-content: center;
-    p {
-        color: black;
-    }
-}
-
-
 .metronome-container {
     width: 80%;
 }
-
-
 
 .metronome {
     width: 100%;
@@ -63,24 +45,3 @@
     transition-timing-function: linear;
 }
 
-
-.metro-info {
-    position: absolute;
-    right: 0;
-    height: 100%;
-}
-
-
-.beat-container {
-    position: absolute;
-    right: 0;
-    display: flex;
-}
-
-
-.tempo-container {
-    position: absolute;
-    right: 0;
-    top: 15%;
-    display: flex;
-}

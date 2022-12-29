@@ -1,37 +1,44 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import '../styles/TunerAndSoundButtons.scss'
 import noteNames from '../enums/noteNames';
 import noteToFreq from '../enums/noteToFreq';
 
-const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetronomeOn, hand, setHand }) => {
-    const [soundBackOn, setSoundBackOn] = useState(false);
-
+const TunerAndSoundButtons = ({ 
+    tunerOn,
+    setTunerOn,
+    soundBackOn,
+    setSoundBackOn,
+    metOn,
+    note, 
+    setNote,
+    acceptedA, 
+    setAcceptedA, 
+    hand, 
+    setHand,
+}) => {
     const soundBackInt = useRef(null);
     const tuneInt = useRef(null);
-
     const bufferLength = 2048;
-
+    
+    useEffect(() => {
+        // These have been set to off and so clear intervals
+        if (!soundBackOn) clearInterval(soundBackInt.current);
+        if (!tunerOn) clearInterval(tuneInt.current);
+    }, [tunerOn, soundBackOn] );
 
     useEffect(() => {
-        if (soundBackOn) {
-            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            clearInterval(tuneInt.current);
-            soundBackInt.current = setInterval(() => {
-                let o = audioCtx.createOscillator();
-                let g = audioCtx.createGain();
-                o.type = 'triangle';
-                o.connect(g);
-                o.frequency.value = noteToFreq[noteNames[note]];
-                g.connect(audioCtx.destination);
-                o.start(0);
-                g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
-                if (!soundBackOn) {
-                    clearInterval(soundBackInt.current)
-                }
-            }, 1000)
-        } else {
-            clearInterval(soundBackInt.current)
-        }
+        if (!soundBackOn) return;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        soundBackInt.current = setInterval(() => {
+            let o = audioCtx.createOscillator();
+            let g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.connect(g);
+            o.frequency.value = noteToFreq[noteNames[note]];
+            g.connect(audioCtx.destination);
+            o.start(0);
+            g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+        }, 1000)
     }, [soundBackOn, note])
 
     const rootMeanSquare = (audioData, size) => {
@@ -110,19 +117,14 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
         return 2048 / T0;
     }
 
-    const tune = async () => {
+    const tune = async () => {  
         try {
-            clearInterval(tuneInt);
-            clearInterval(soundBackInt)
             let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let analyserNode = audioCtx.createAnalyser()
-            
+            let analyserNode = audioCtx.createAnalyser();
             analyserNode.fftSize = bufferLength;
             analyserNode.minDecibels = -100;
             analyserNode.maxDecibels = -10;
             analyserNode.smoothingTimeConstant = 0.85;
-            setMetronomeOn(false)
-            clearInterval(soundBackInt.current);
             const stream = await navigator.mediaDevices.getUserMedia({audio: true})
 
             let microphoneStream = audioCtx.createMediaStreamSource(stream);
@@ -131,21 +133,17 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
             let audioData = new Float32Array(bufferLength);
 
             tuneInt.current = setInterval(() => {
-                // component unmounted
                 analyserNode.getFloatTimeDomainData(audioData);
 
                const pitch = getCorrolatedFrequency(audioData);
 
-               console.log(pitch)
                if (pitch < 0) return;
 
                // c = 440.0(2^-4.75)
-                const c0 = 440.0 * Math.pow(2.0, -4.75);
+                // const c0 = 440.0 * Math.pow(2.0, -4.75);
                 // Convert the frequency to a musical pitch.
                 const unroundedNote =  12 * (Math.log( pitch / 440 ) /Math.log(2));
-                // h = round(12log2(f / c))
                 const halfStepsBelowMiddleC = Math.round(unroundedNote) + 69
-                // o = floor(h / 12)
                 const octave = Math.floor(halfStepsBelowMiddleC / 12.0);
                 const index = Math.floor(halfStepsBelowMiddleC % 12);
                 const key = noteNames[index];
@@ -179,15 +177,24 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
             setAcceptedA(acceptedA > 410 ? acceptedA - 1 : 480);
         }
     };
-
-    const soundBack = () => setSoundBackOn(!soundBackOn);
-
     
     return (
         <div className="tuner-sound-buttons">
-            <button className="tuner-button" onClick={tune}>
+            {!tunerOn 
+            ? <button 
+                className="tuner-button" 
+                onClick={() => {setTunerOn(true); tune();}}
+                disabled={soundBackOn || metOn}
+            >
                 TUNER ON
-            </button>
+              </button>
+            : <button 
+                className="tuner-button button-on" 
+                onClick={() => setTunerOn(false) }
+            >
+                TUNER OFF
+              </button>
+            }
 
             <div className="calib-buttons">
                 <p>CALIB-NOTE</p>
@@ -197,7 +204,14 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
             <div className="sound-container">
                 <p>SOUND BACK</p>
-                <button id="soundBack" onClick={soundBack}>&#9673;</button>
+                <button 
+                    id="soundBack" 
+                    className={soundBackOn ? 'button-on': ''} 
+                    disabled={tunerOn || metOn}
+                    onClick={() => setSoundBackOn(!soundBackOn)}
+                >
+                    &#9673;
+                </button>
             </div>
 
         </div>
