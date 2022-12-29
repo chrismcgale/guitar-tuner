@@ -12,11 +12,19 @@ const MetroButtons = ({hand, setHand, tempo, setTempo, beat, setBeat, metronomeO
 
         // then oscilate between left and right
         let rotate = -45;
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         metInterval.current = setInterval(() => {
             setHand(rotate);
             rotate *= -1;
             // play sound
-            console.log(metronomeOn)
+            let o = audioCtx.createOscillator();
+            let g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.connect(g);
+            o.frequency.value = 440;
+            g.connect(audioCtx.destination);
+            o.start(0);
+            g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
             if (!metronomeOn) clearInterval(metInterval);
         }, (60 / tempo) * 1000);
     }, [metronomeOn]);
