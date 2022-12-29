@@ -1,0 +1,5 @@
+Make sure hand angle is correct
+Reduce bundle size
+Tests?
+Bring back helper lines for tuner
+More styling

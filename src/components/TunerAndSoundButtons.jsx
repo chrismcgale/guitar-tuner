@@ -14,9 +14,10 @@ const TunerAndSoundButtons = ({ note, setNote, acceptedA, setAcceptedA, setMetro
 
     useEffect(() => {
         if (soundBackOn) {
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             clearInterval(tuneInt.current);
             soundBackInt.current = setInterval(() => {
-                    let o = audioCtx.createOscillator();
+                let o = audioCtx.createOscillator();
                 let g = audioCtx.createGain();
                 o.type = 'triangle';
                 o.connect(g);
