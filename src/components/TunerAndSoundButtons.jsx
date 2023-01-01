@@ -142,14 +142,17 @@ const TunerAndSoundButtons = ({
                // c = 440.0(2^-4.75)
                 // const c0 = 440.0 * Math.pow(2.0, -4.75);
                 // Convert the frequency to a musical pitch.
-                const unroundedNote =  12 * (Math.log( pitch / 440 ) /Math.log(2));
-                const halfStepsBelowMiddleC = Math.round(unroundedNote) + 69
+                const unroundedNote =  12 * (Math.log( pitch / 440 ) / Math.log(2));
+                const halfStepsBelowMiddleC = Math.round(unroundedNote) + 97;
                 const octave = Math.floor(halfStepsBelowMiddleC / 12.0);
                 const index = Math.floor(halfStepsBelowMiddleC % 12);
                 const key = noteNames[index];
 
-                let rotate = 45 * (unroundedNote  + 69 - halfStepsBelowMiddleC);
+                let rotate = 45 * (unroundedNote + 97 - halfStepsBelowMiddleC);
                 if (hand)  rotate = Math.abs(rotate + hand);
+
+                
+                console.log(unroundedNote, index)
 
                 setNote(index);
 

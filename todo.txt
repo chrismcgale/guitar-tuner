@@ -1,4 +1,5 @@
-Make sure hand angle is correct
+Turn off mic access on page exit
+Allow metro sounds right away
 Reduce bundle size
 Tests?
 Bring back helper lines for tuner
