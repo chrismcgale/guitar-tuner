@@ -1,16 +1,426 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pitch Detection</title>
-    <link rel="stylesheet" type="text/css" href="/style.css">
-    
+    <title>Guitar Tuner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.10/htmx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fft.js/4.0.3/fft.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        #frequency {
+            font-size: 3rem;
+            margin: 1rem 0;
+        }
+        #note {
+            font-size: 4rem;
+            font-weight: bold;
+        }
+        button {
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            margin: 1rem;
+        }
+        canvas {
+            width: 100%;
+            max-width: 600px;
+            height: 200px;
+            margin: 1rem 0;
+        }
+    </style>
 </head>
-
 <body>
-    <div id="app"></div>
-    <script src="/bundle.js"></script>
-</body>
+    <div class="tuner-sound-buttons">
+        <button id="tuner-button" class="button-off" onclick="toggleTuner()">TUNER OFF</button>
+        <div class="calib-buttons">
+            <p>CALIBRATE NOTE</p>
+            <button id="noteUp" onClick={increaseNote()} disabled>&#9650;</button>
+            <button id="noteDown" onClick={decreaseNote()} disabled>&#9660;</button>
+        </div>
 
+    </div>
+
+    <div id="frequency">0 Hz</div>
+    <div id="note">-</div>
+    <canvas id="visualizer"></canvas>
+
+    <div id="metronome">
+        <div class="note-arrow">&#9660;</div>
+        <div id="hand" class="hand" ></div>
+    </div>
+
+    <div class="metro-buttons">
+        <button id="metro-button" class="button-off" onClick="toggleMetronome()">
+            METRONOME OFF
+        </button>
+
+        <div class="beat-buttons">
+            <p>BEAT</p>
+            <button id="beatUp" onClick={increaseBeat} disabled>&#9650;</button>
+            <button id="beatDown" onClick={decreaseBeat} disabled>&#9660;</button>
+        </div>
+
+
+        <div class="tap-button-container">
+            <p>TAP TEMPO</p>
+            <button class="tap-button" onClick={tapTempo}>&#9673;</button>
+        </div>
+    </div>
+
+    <script>
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        let audioContext, analyzer, stream, source;
+        const FFT_SIZE = 2048;
+        let soundBackInt = null;
+        let note = 0;
+        const noteToFreq = {
+            'C': 261.6,
+            'C#': 277.2,
+            'D': 293.7,
+            'D#': 311.1,
+            'E': 329.6,
+            'F': 349.2,
+            'F#': 370,
+            'G': 392,
+            'G#': 415.3,
+            'A': 440,
+            'A#': 466.2,
+            'B': 493.9,
+        };
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', ];
+        const minBeat = 30;
+        const maxBeat = 252;       
+        let hand_angle = 0
+        let beat = 60;
+
+        // Initialize canvas size
+        const canvas = document.querySelector('canvas');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        const hand_container = document.getElementById('metronome');
+
+        function toggleTuner() {
+            if (!audioContext) {
+                stopMetronome();    
+                startTuner();
+
+            } else {
+                stopTuner();
+                
+            }
+        }
+
+        function toggleMetronome() {
+            if (!soundBackInt) {
+                stopTuner();
+                startMetronome();
+            } else {
+                stopMetronome();
+            }
+        }
+
+        function startMetronome() {
+            document.getElementById('metro-button').textContent = 'METRONOME ON';
+
+            document.getElementById('metro-button').classList.remove('button-off');
+            document.getElementById('metro-button').classList.add('button-on');
+
+            document.getElementById('beatUp').disabled = false;
+            document.getElementById('beatDown').disabled = false;
+
+            document.getElementById('noteUp').disabled = false;
+            document.getElementById('noteDown').disabled = false;
+            document.querySelector('#note').textContent = noteNames[note];
+            startSoundBack();
+
+        }
+
+        function stopMetronome() {
+            document.getElementById('metro-button').textContent = 'METRONOME OFF';
+            document.getElementById('metro-button').classList.remove('button-on');
+            document.getElementById('metro-button').classList.add('button-off');
+            stopSoundback();
+        }
+
+        function startSoundBack() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let rotate = -45;
+            soundBackInt = setInterval(() => {
+                hand_angle = rotate;
+                rotate *= -1;
+                let o = audioCtx.createOscillator();
+                let g = audioCtx.createGain();
+                o.type = 'triangle';
+                o.connect(g);
+                o.frequency.value = noteToFreq[noteNames[note]];
+                g.connect(audioCtx.destination);
+                o.start(0);
+                g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+                updateVisualizerMetro()
+            }, 60000 / beat);
+        }
+
+        function stopSoundback() {
+            clearInterval(soundBackInt);
+            soundBackInt = null;
+        }
+
+        const increaseNote = () => {
+            stopSoundback();
+            note = (note + 1) % 12;
+            document.querySelector('#note').textContent = noteNames[note];
+            startSoundBack();
+        };
+    
+        const decreaseNote = () => {
+            stopSoundback();
+            note = (note + 11) % 12;
+            document.querySelector('#note').textContent = noteNames[note];
+            startSoundBack();
+        };
+
+
+        const increaseBeat = () => {
+            stopSoundback();
+            const inc = Math.floor(beat / 10);
+            if (tempo + inc > maxBeat) beat = minBeat;
+            else beat += inc;
+            startSoundBack();
+        }
+    
+        const decreaseBeat = () => {
+            stopSoundback();
+            const dec = Math.floor(beat / 10);
+            if (tempo + dec > minBeat) beat = maxBeat;
+            else beat
+            startSoundBack();
+        }
+
+        async function startTuner() {
+            document.getElementById('beatUp').disabled = true;
+            document.getElementById('beatDown').disabled = true;
+
+            document.getElementById('noteUp').disabled = true;
+            document.getElementById('noteDown').disabled = true;
+            try {
+                audioContext = new AudioContext();
+                analyzer = audioContext.createAnalyser();
+                analyzer.fftSize = FFT_SIZE;
+                
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyzer);
+                
+                requestAnimationFrame(updatePitch);
+                document.getElementById('tuner-button').textContent = 'TUNNER ON';
+                document.getElementById('tuner-button').classList.remove('button-off');
+                document.getElementById('tuner-button').classList.add('button-on');
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+            }
+        }
+
+        function stopTuner() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            document.getElementById('tuner-button').textContent = 'TUNNER OFF';
+            document.getElementById('tuner-button').classList.remove('button-on');
+            document.getElementById('tuner-button').classList.add('button-off');
+            document.querySelector('#frequency').textContent = '0 Hz';
+            document.querySelector('#note').textContent = '-';
+        }
+
+        function normalizeData(buffer) {
+            const normalized = new Uint8Array(buffer.length);
+            for (let i = 0; i < buffer.length; i++) {
+              normalized[i] = ((buffer[i] + 1) / 2) * 255;
+            }
+            return normalized;
+          }
+
+        function frequencyToNote(frequency) {
+            const unroundedNote = 12 * (Math.log( frequency / 440 ) / Math.log(2));
+            const midiNote = 12 * Math.log2(frequency / 440) + 69;
+            const halfStepsBelowMiddleC = Math.round(midiNote) + 97;
+            let rotate = 45 * (midiNote + 97 - halfStepsBelowMiddleC);
+            if (hand_angle)  rotate = Math.abs(rotate + hand_angle);
+            hand_angle = rotate;
+            updateVisualizerMetro();
+
+            const noteIndex = Math.round(midiNote) % 12;
+            const octave = Math.floor(Math.round(midiNote) / 12) - 1;
+            
+            return `${notes[noteIndex]}${octave}`;
+        }
+
+        function updatePitch() {
+            if (!audioContext) return;
+
+            const buffer = new Float32Array(analyzer.frequencyBinCount);
+            analyzer.getFloatTimeDomainData(buffer);
+
+            const normalizedData = normalizeData(buffer);
+
+            // Use autocorrelation for pitch detection
+            const ac = autoCorrelate(normalizedData, audioContext.sampleRate);
+
+
+            if (ac !== -1) {
+                
+                const frequency = Math.round(ac);
+                const note = frequencyToNote(ac);
+                
+                document.querySelector('#frequency').textContent = `${frequency} Hz`;
+                document.querySelector('#note').textContent = note;
+                
+                // Update visualization
+                updateVisualizerTuner();
+            }
+
+            requestAnimationFrame(updatePitch);
+        }
+
+        const rootMeanSquare = (audioData, size) => {
+            let sumOfSquares = 0;
+            for (let i = 0; i < size; i++) sumOfSquares += audioData[i] ** 2;
+    
+            return Math.sqrt(sumOfSquares / size);
+        }
+
+        function autoCorrelate(audioData, sampleRate) {
+            const size = audioData.length;
+            const rms = rootMeanSquare(audioData, size);
+            if (rms < 0.01) {
+                return -1;
+            }
+
+            // Find a range in the buffer where the values are below a given threshold.
+            let r1 = 0;
+            let r2 = size - 1;
+            let threshold = 0.2;
+
+            // Walk up for r1
+            for (let i = 0; i < size / 2; i++) {
+                if (Math.abs(audioData[i]) < threshold) {
+                    r1 = i;
+                    break;
+                }
+            }
+
+            // Walk down for r2
+            for (let i = size - 1; i >= size / 2; i--) {
+                if (Math.abs(audioData[i]) < threshold) {
+                    r2 = i;
+                    break;
+                }
+            }
+
+            // Trim the buffer to these ranges and update SIZE.
+            const trimmedData = audioData.slice(r1, r2);
+            const trimmedSize = trimmedData.length
+
+            // Create a new array of the sums of offsets to do the autocorrelation
+            let cds = new Array(FFT_SIZE).fill(0);
+            // For each potential offset, calculate the sum of each buffer value times its offset value
+            for (let offset = 0; offset < trimmedSize; offset++) {
+                for (let j = 0; j < trimmedSize - offset; j++) {
+                    cds[offset] += trimmedData[j] * trimmedData[j + offset];
+                }
+            }
+
+            let d = 0;
+            while (d < trimmedSize && cds[d] > cds[d + 1]) d++;
+
+
+            // Iterate from that index through the end and find the maximum sum
+            let maxValue = -1;
+            let maxIndex = -1;
+            for (var i = d; i < trimmedSize; i++) {
+                if (cds[i] > maxValue) {
+                        maxValue = cds[i];
+                        maxIndex = i;
+                }
+            }
+
+            let T0 = maxIndex;
+
+            if (maxIndex == -1) return -1;
+            
+            // smooth out error
+            let y1 = cds[T0 - 1];
+            let y2 = cds[T0];
+            let y3 = cds[T0 + 1]
+
+            let a = (y1 + y3 - 2 * y2) / 2;
+            let b = (y3 - y1) / 2;
+            if (a !== 0) T0 -=  b / (2 * a);
+
+            return 2048 / T0;
+        }
+
+        function interpolatePeak(array, peak) {
+            if (peak <= 0 || peak >= array.length - 1) return 0;
+            const alpha = array[peak - 1];
+            const beta = array[peak];
+            const gamma = array[peak + 1];
+            const shift = 0.5 * (alpha - gamma) / (alpha - 2*beta + gamma);
+            return shift;
+        }
+
+        function updateVisualizerTuner() {
+            const canvas = document.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
+            const FFT_SIZE = analyzer?.frequencyBinCount || 0;
+            const dataArray = new Float32Array(FFT_SIZE);
+            
+            analyzer?.getFloatFrequencyData(dataArray);
+            
+            ctx.fillStyle = 'rgb(200, 200, 200)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+            ctx.beginPath();
+            
+            const sliceWidth = canvas.width * 1.0 / FFT_SIZE;
+            let x = 0;
+            
+            for (let i = 0; i < FFT_SIZE; i++) {
+                const v = (dataArray[i] + 140) / 140;
+                const y = v * canvas.height;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        }
+
+        function updateVisualizerMetro() {
+            const hand = document.getElementById('hand');
+            hand.style.transform = `rotate(${hand_angle}deg)`;
+            hand.style.transitionDuration = `${60 / beat}s`;
+        }
+
+        updateVisualizerTuner();
+
+    </script>
+</body>
 </html>
